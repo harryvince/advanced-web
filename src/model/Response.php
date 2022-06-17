@@ -101,7 +101,7 @@
                 $this->_responseData['statusCode'] = 415;
                 http_response_code(415);
                 $this->_responseData['data'] = "Client Error.";
-                $this->_responseData['messages'] = "No Content-Type header has been provided, this API currently support JSON & XML";
+                $this->_responseData['messages'] = "No Content-Type header has been provided, this API currently supports JSON & XML";
                 echo json_encode($this->_responseData);
             }
         }

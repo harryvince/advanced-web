@@ -58,12 +58,15 @@
         }
 
         public function isValidDate($date, $format = 'Y-m-d') {
+            if($date === null || $date === "") {
+                return true;
+              }
             $dateObj = DateTime::createFromFormat($format, $date);
-            return $dateObject && dateObj->format($format) == $date;
+            return $dateObj && $dateObj->format($format) == $date;
         }
 
         public function setId($id) {
-            if (($id !== null)) && (!is_numeric($id) || $this->_id !== null) {
+            if (($id !== null) && (!is_numeric($id) || $this->_id !== null)) {
                 throw new TaskException("Error: Task ID Issue");
             }
             $this->_id = $id;
@@ -96,13 +99,13 @@
 
         public function setEndTime($end_time) {
             if(!$this->isValidDate($end_time, 'H:i:s')) {
-                throw new TaskException("Error: End Time Issue")
+                throw new TaskException("Error: End Time Issue");
             }
             $this->_end_time = $end_time;
         }
 
         public function setDeadline($deadline) {
-            if (($deadline !== null) && date_format(date_create_from_format('d-m-Y H:i:', $deadline), 'd-m-Y H:i') !== $deadline) {
+            if (($deadline !== null) && date_format(date_create_from_format('d-m-Y H:i', $deadline), 'd-m-Y H:i') !== $deadline) {
                 throw new TaskException("Error: Deadline Issue");
             }
             $this->_deadline = $deadline;
@@ -112,6 +115,7 @@
             if (strtoupper($complete) !== 'Y' && strtoupper($complete) !== 'N') {
                 throw new TaskException("Error: Status Issue");
             }
+            $this->_complete = $complete;
         }
 
         public function getTasksAsArray() {
