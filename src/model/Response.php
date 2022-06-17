@@ -56,10 +56,10 @@
             $this->_toCache = $toCache;
         }
 
-        public function send($responseType) {
-            if ($responseType === 'json') {
+        public function send() {
+            if (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'application/json') {
                 header('Content-type: application/json;charset=utf-8');
-            } elseif ($responseType === 'xml') {
+            } elseif (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'text/xml') {
                 header('Content-type: text/xml;charset=utf-8');
             }
 
@@ -83,10 +83,26 @@
                 $this->_responseData['data'] = $this->_data;
             }
 
-            if ($responseType === 'json') {
+            if (isset($_SERVER['CONTENT_TYPE'])) {
+                if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+                    echo json_encode($this->_responseData);
+                } elseif ($_SERVER['CONTENT_TYPE'] === 'text/xml') { 
+                    echo arrayToXml($this->_responseData);
+                } elseif (strlen($_SERVER['CONTENT_TYPE']) >= 1){
+                    $this->_responseData['success'] = false;
+                    $this->_responseData['statusCode'] = 415;
+                    http_response_code(415);
+                    $this->_responseData['data'] = "Client Error.";
+                    $this->_responseData['message'] = "More than one Content-Type header has been provided, please only provide 1";
+                    echo json_encode($this->_responseData);
+                }
+            } else {
+                $this->_responseData['success'] = false;
+                $this->_responseData['statusCode'] = 415;
+                http_response_code(415);
+                $this->_responseData['data'] = "Client Error.";
+                $this->_responseData['message'] = "No Content-Type header has been provided, this API currently support JSON & XML";
                 echo json_encode($this->_responseData);
-            } elseif ($responseType === 'xml') { 
-                echo arrayToXml($this->_responseData);
             }
         }
     }
