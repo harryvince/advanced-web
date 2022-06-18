@@ -57,9 +57,9 @@
         }
 
         public function send() {
-            if (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'application/json') {
+            if (isset($_SERVER['HTTP_RESPONSE_TYPE']) && $_SERVER['HTTP_RESPONSE_TYPE'] === 'application/json') {
                 header('Content-type: application/json;charset=utf-8');
-            } elseif (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'text/xml') {
+            } elseif (isset($_SERVER['HTTP_RESPONSE_TYPE']) && $_SERVER['HTTP_RESPONSE_TYPE'] === 'text/xml') {
                 header('Content-type: text/xml;charset=utf-8');
             }
 
@@ -83,17 +83,17 @@
                 $this->_responseData['data'] = $this->_data;
             }
 
-            if (isset($_SERVER['CONTENT_TYPE'])) {
-                if ($_SERVER['CONTENT_TYPE'] === 'application/json') {
+            if (isset($_SERVER['HTTP_RESPONSE_TYPE'])) {
+                if ($_SERVER['HTTP_RESPONSE_TYPE'] === 'application/json') {
                     echo json_encode($this->_responseData);
-                } elseif ($_SERVER['CONTENT_TYPE'] === 'text/xml') { 
+                } elseif ($_SERVER['HTTP_RESPONSE_TYPE'] === 'text/xml') { 
                     echo arrayToXml($this->_responseData);
-                } elseif (strlen($_SERVER['CONTENT_TYPE']) >= 1){
+                } elseif (strlen($_SERVER['HTTP_RESPONSE_TYPE']) >= 1){
                     $this->_responseData['success'] = false;
                     $this->_responseData['statusCode'] = 415;
                     http_response_code(415);
                     $this->_responseData['data'] = "Client Error.";
-                    $this->_responseData['messages'] = "More than one Content-Type header has been provided, please only provide 1";
+                    $this->_responseData['messages'] = "More than one Response-Type header has been provided, please only provide 1";
                     echo json_encode($this->_responseData);
                 }
             } else {
@@ -101,7 +101,7 @@
                 $this->_responseData['statusCode'] = 415;
                 http_response_code(415);
                 $this->_responseData['data'] = "Client Error.";
-                $this->_responseData['messages'] = "No Content-Type header has been provided, this API currently supports JSON & XML";
+                $this->_responseData['messages'] = "No Response-Type header has been provided, this API currently supports JSON & XML";
                 echo json_encode($this->_responseData);
             }
         }
