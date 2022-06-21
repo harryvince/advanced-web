@@ -4,6 +4,10 @@ require_once('db.php');
 require_once('../model/Task.php');
 require_once('../model/Response.php');
 
+# Change what the users entering to lowercase to allow endpoints
+if ( $_SERVER['REQUEST_URI'] != strtolower ( $_SERVER['REQUEST_URI'] ) )
+    header ('Location: //' . $_SERVER['HTTP_HOST'] . strtolower ( $_SERVER['REQUEST_URI'] ));
+
 try {
     $writeDB = DB::connectWriteDB();
     $readDB = DB::connectReadDB();
@@ -316,7 +320,7 @@ if(array_key_exists("taskid", $_GET)) {
     }
     
 } elseif(array_key_exists("complete", $_GET)) {
-    $complete = $_GET['complete'];
+    $complete = strtoupper($_GET['complete']);
 
     if ($complete !== 'Y' && $complete !== 'N') {
         $response = new Response();
