@@ -1,0 +1,29 @@
+version: '3'
+services:
+  database:
+    image: mysql:8.0.29
+    cap_add:
+      - SYS_NICE
+    environment:
+      - MYSQL_DATABASE=api
+      - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
+    ports:
+      - '3306:3306'
+    volumes:
+      - db:/var/lib/mysql
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+  site:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 80:80
+    environment:
+      - DATABASE_CONNECTION_NAME=database
+      - DATABASE_PASSWORD=mauFJcuf5dhRMQrjj
+volumes:
+  db:
+    driver: local
