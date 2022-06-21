@@ -2,7 +2,7 @@
 
     require_once('../utils/dotenv.php');
 
-    if ($_ENV !== 'PRODUCTION') {
+    if ($_ENV["ENVIRONMENT"] !== 'PRODUCTION') {
         (new DotEnv($_SERVER['DOCUMENT_ROOT'].'/.env'))->load();
     }
 
