@@ -1,5 +1,11 @@
 <?php 
 
+    require_once('../utils/dotenv.php');
+
+    if ($_ENV !== 'PRODUCTION') {
+        (new DotEnv($_SERVER['DOCUMENT_ROOT'].'/.env'))->load();
+    }
+
     class DB {
     
         private static $writeDBConnection;
