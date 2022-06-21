@@ -24,6 +24,7 @@ services:
     environment:
       - DATABASE_CONNECTION_NAME=database
       - DATABASE_PASSWORD=mauFJcuf5dhRMQrjj
+      - ENVIRONMENT=PRODUCTION
 volumes:
   db:
     driver: local
