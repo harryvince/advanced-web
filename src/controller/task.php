@@ -29,7 +29,46 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
   echo 'You have not provided credentials to access the API, please authenticate';
   exit;
 } else {
-  
+  $user = new User($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+  try {
+    $username = $user->getUsername();
+    $query = $readDB->prepare('select * from login where username = :username');
+    $query->bindParam(':username', $username, PDO::PARAM_INT);
+    $query->execute();
+
+    $rowCount = $query->rowCount();
+
+    if ($rowCount === 0) {
+      $response = new Response();
+      $response->setHttpStatusCode(404);
+      $response->setSuccess(false);
+      $response->addMessage("Authorization Failure: Username Not Found");
+      $response->send();
+      exit;
+  }
+
+  while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+      $hashedPassword = $row['password'];
+      $checkPassword = password_verify($user->getPassword(), $hashedPassword);
+
+      if (!(password_verify($user->getPassword(), $hashedPassword))) {
+        $response = new Response();
+        $response->setHttpStatusCode(403);
+        $response->setSuccess(false);
+        $response->addMessage("Authorization Failure: Incorrect password");
+        $response->send();
+        exit;
+      }
+  }
+
+  } catch (PDOException $exception) {
+    $response = new Response();
+    $response->setHttpStatusCode(500);
+    $response->setSuccess(false);
+    $response->addMessage("Failed to Login");
+    $response->send();
+    exit;
+}
 }
 
 
