@@ -35,6 +35,15 @@
         private $_data;
         private $_toCache = false;
         private $_responseData = array();
+        private $_authenticatedUser;
+
+        public function setAuthenticatedUser($authenticatedUser) {
+            $this->_authenticatedUser = $authenticatedUser;
+        }
+
+        public function getAuthenticatedUser() {
+            return $this->_authenticatedUser;
+        }
 
         public function setSuccess($success) {
             $this->_success = $success;
@@ -79,6 +88,7 @@
                 $this->_responseData['success'] = true;
                 http_response_code($this->_httpStatusCode);
                 $this->_responseData['statusCode'] = $this->_httpStatusCode;
+                $this->_responseData['authenticatedUser'] = $this->_authenticatedUser;
                 $this->_responseData['messages'] = $this->_messages;
                 $this->_responseData['data'] = $this->_data;
             }
@@ -92,6 +102,7 @@
                     $this->_responseData['success'] = false;
                     $this->_responseData['statusCode'] = 415;
                     http_response_code(415);
+                    $this->_responseData['authenticatedUser'] = $this->_authenticatedUser;
                     $this->_responseData['data'] = "Client Error.";
                     $this->_responseData['messages'] = "More than one Response-Type header has been provided, please only provide 1";
                     echo json_encode($this->_responseData);
@@ -100,8 +111,10 @@
                 $this->_responseData['success'] = false;
                 $this->_responseData['statusCode'] = 415;
                 http_response_code(415);
+                $this->_responseData['authenticatedUser'] = $this->_authenticatedUser;
                 $this->_responseData['data'] = "Client Error.";
                 $this->_responseData['messages'] = "No Response-Type header has been provided, this API currently supports JSON & XML";
+                $this->_responseData['authenticatedUser'] = $this->_authenticatedUser;
                 echo json_encode($this->_responseData);
             }
         }

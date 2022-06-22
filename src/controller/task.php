@@ -3,6 +3,7 @@
 require_once('db.php');
 require_once('../model/Task.php');
 require_once('../model/Response.php');
+require_once('../model/User.php');
 
 # Change what the users entering to lowercase to allow endpoints
 if ( $_SERVER['REQUEST_URI'] != strtolower ( $_SERVER['REQUEST_URI'] ) )
@@ -21,6 +22,17 @@ try {
     exit;
 }
 
+# User authentication
+if (!isset($_SERVER['PHP_AUTH_USER'])) {
+  header('WWW-Authenticate: Basic realm="My Realm"');
+  header('HTTP/1.0 401 Unauthorized');
+  echo 'You have not provided credentials to access the API, please authenticate';
+  exit;
+} else {
+  
+}
+
+
 if(array_key_exists("taskid", $_GET)) {
     $taskid = $_GET['taskid'];
 
@@ -29,6 +41,7 @@ if(array_key_exists("taskid", $_GET)) {
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
         $response->addMessage("Task ID: Cannot be null and must be numeric");
+        $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
         $response->send();
     exit;
     }
@@ -47,6 +60,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
                 $response->addMessage("Task ID Not Found");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -64,6 +78,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setSuccess(true);
             $response->toCache(true);
             $response->setData($returnData);
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } catch(TaskException $exception) {
@@ -71,6 +86,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage($exception->getMessage());
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         }
@@ -79,6 +95,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage("Failed to Retrieve Task");
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         }
@@ -95,6 +112,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
                 $response->addMessage("Error: Task not found!");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit; 
             }
@@ -103,6 +121,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(200);
             $response->setSuccess(true);
             $response->addMessage("Task Deleted Successfully!");
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit; 
 
@@ -111,6 +130,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage("Failed to Delete Task");
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         }
@@ -122,6 +142,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(400);
               $response->setSuccess(false);
               $response->addMessage("Error: Invalid Content Type Header");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
             }
@@ -133,6 +154,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(400);
               $response->setSuccess(false);
               $response->addMessage("Error: Request Body is not Valid JSON");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
             }
@@ -183,6 +205,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(400);
               $response->setSuccess(false);
               $response->addMessage("No Data Provided");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
             }
@@ -199,6 +222,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(404);
               $response->setSuccess(false);
               $response->addMessage("Task ID Not Found");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit;
             }
@@ -273,6 +297,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(404);
               $response->setSuccess(false);
               $response->addMessage("Task ID Not Found");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit;
             }
@@ -290,6 +315,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setSuccess(true);
             $response->toCache(true);
             $response->setData($returnData);
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
           }
@@ -299,6 +325,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(400);
               $response->setSuccess(false);
               $response->addMessage($exception->getMessage());
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
           }
@@ -307,6 +334,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response->setHttpStatusCode(500);
               $response->setSuccess(false);
               $response->addMessage("Failed to Update Task");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
           }
@@ -315,6 +343,7 @@ if(array_key_exists("taskid", $_GET)) {
         $response->setHttpStatusCode(405);
         $response->setSuccess(false);
         $response->addMessage("Invalid Request Method");
+        $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
         $response->send();
         exit;
     }
@@ -327,6 +356,7 @@ if(array_key_exists("taskid", $_GET)) {
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
         $response->addMessage("Error: Complete must be Y or N");
+        $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
         $response->send();
         exit;
     }
@@ -345,6 +375,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
                 $response->addMessage("Tasks Not Found");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -363,6 +394,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setSuccess(true);
             $response->toCache(true);
             $response->setData($returnData);
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } catch (TaskException $exception) {
@@ -370,6 +402,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage($exception->getMessage());
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } catch (PDOException $Exception) {
@@ -377,6 +410,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage("Error: Failed to Get Tasks");
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } 
@@ -398,6 +432,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(415);
                 $response->setSuccess(false);
                 $response->addMessage("Error: Unsupported Content Type Header");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -409,6 +444,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(400);
                 $response->setSuccess(false);
                 $response->addMessage("Error: Request Body is not Valid JSON");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -419,6 +455,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setSuccess(false);
                 (!isset($jsonData->title) ? $response->addMessage("Error: Title is a Mandatory Field") : false);
                 (!isset($jsonData->complete) ? $response->addMessage("Error: Complete Status is a Mandatory Field") : false);
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -458,6 +495,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(500);
                 $response->setSuccess(false);
                 $response->addMessage("Error: Failed to Insert Task into Database");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -476,6 +514,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
                 $response->addMessage("Error: Task ID Not Found");
+                $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
@@ -494,6 +533,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setSuccess(true);
             $response->toCache(true);
             $response->setData($returnData);
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } catch (TaskException $exception) {
@@ -501,6 +541,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
             $response->addMessage($exception->getMessage());
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         } catch (PDOException $exception) {
@@ -509,6 +550,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
             $response->addMessage("Error: Failed to Insert Task into Database");
+            $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         }
@@ -518,6 +560,7 @@ if(array_key_exists("taskid", $_GET)) {
         $response->setHttpStatusCode(404);
         $response->setSuccess(false);
         $response->addMessage("Error: Invalid Endpoint");
+        $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
         $response->send();
         exit;
     } 
