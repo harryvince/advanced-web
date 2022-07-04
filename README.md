@@ -22,19 +22,21 @@ docker-compose -f docker-compose-full.yaml up
 ```
 
 # Notes
-TODO:
-- [ ]  ~~An appropriate database backend that demonstrates you have considered the assessment scenario and all requirements you have implemented~~
-- [ ] ~~Appropriate data models implemented in your application~~
-- [ ] ~~Read records from a database and return valid XML or JSON output~~
-- [ ] ~~Create records in a database and return valid XML or JSON output~~
-- [ ] ~~Update records in a database and return valid XML or JSON output~~
-- [ ] ~~Delete records from a database and return valid XML or JSON output~~
+<b>Task:</b> 
+
+Your company has been approached to develop and Application that allows their users to manage their favourite books.
+
+<b>TODO:</b>
+- [ ]  An appropriate database backend that demonstrates you have considered the assessment scenario and all requirements you have implemented
+- [ ] Appropriate data models implemented in your application
+- [ ] Read records from a database and return valid XML or JSON output
+- [ ] Create records in a database and return valid XML or JSON output
+- [ ] Update records in a database and return valid XML or JSON output
+- [ ] Delete records from a database and return valid XML or JSON output
 - [x] Provide valid returns in both XML and JSON
 - [x] Implement  appropriate  security  so  that  a  user  is  required  to  authenticate  to carry out tasks (such as Create, Update and Delete requests)
 
-Tasks that are striken through cannot yet be completed due to lack of assignment. 
-
-All core work has been completed just waiting on a scenario to accurately model the database and application around that
+Assignment has now been handed out therefore the requirements unstruck and new scenario
 
 # Creator
 Harry Vince
