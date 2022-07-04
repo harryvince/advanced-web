@@ -38,7 +38,7 @@ Your company has been approached to develop and Application that allows their us
 
 <b>Personal TODO:</b>
 - [x] Only allow users to see books from their user ID 
-- [ ] Allow the creation of users
+- [x] Allow the creation of users
 
 Assignment has now been handed out therefore the requirements unstruck and new scenario
 
