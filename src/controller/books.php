@@ -1,7 +1,7 @@
 <?php
 
 require_once('db.php');
-require_once('../model/Task.php');
+require_once('../model/Book.php');
 require_once('../model/Response.php');
 require_once('../model/User.php');
 
@@ -32,7 +32,7 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
   $user = new User($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
   try {
     $username = $user->getUsername();
-    $query = $readDB->prepare('select * from login where username = :username');
+    $query = $readDB->prepare('select * from Users where username = :username');
     $query->bindParam(':username', $username, PDO::PARAM_INT);
     $query->execute();
 
@@ -45,7 +45,7 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
       $response->addMessage("Authorization Failure: Username Not Found");
       $response->send();
       exit;
-  }
+    }
 
   while($row = $query->fetch(PDO::FETCH_ASSOC)) {
       $hashedPassword = $row['password'];
@@ -59,6 +59,8 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
         $response->send();
         exit;
       }
+
+      $_SESSION['userID'] = $row['userID'];
   }
 
   } catch (PDOException $exception) {
@@ -72,14 +74,14 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 }
 
 
-if(array_key_exists("taskid", $_GET)) {
-    $taskid = $_GET['taskid'];
+if(array_key_exists("bookid", $_GET)) {
+    $bookid = $_GET['bookid'];
 
-    if($taskid == '' || !is_numeric($taskid)) {
+    if($bookid == '' || !is_numeric($bookid)) {
         $response = new Response();
         $response->setHttpStatusCode(400);
         $response->setSuccess(false);
-        $response->addMessage("Task ID: Cannot be null and must be numeric");
+        $response->addMessage("Book ID: Cannot be null and must be numeric");
         $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
         $response->send();
     exit;
@@ -87,30 +89,30 @@ if(array_key_exists("taskid", $_GET)) {
 
     if($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
-            $query = $readDB->prepare('select id, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from tbl_tasks where id = :taskid');
-            $query->bindParam(':taskid', $taskid, PDO::PARAM_INT);
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
 
             $rowCount = $query->rowCount();
-            $taskArray = array();
+            $bookArray = array();
 
             if ($rowCount === 0) {
                 $response = new Response();
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
-                $response->addMessage("Task ID Not Found");
+                $response->addMessage("Book ID Not Found");
                 $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $task = new Task($row['id'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $taskArray[] = $task->getTasksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+                $bookArray[] = $book->getBooksAsArray();
             }
 
             $returnData = array();
             $returnData['rows_returned'] = $rowCount;
-            $returnData['tasks'] = $taskArray;
+            $returnData['books'] = $bookArray;
 
             $response = new Response();
             $response->setHttpStatusCode(200);
@@ -120,7 +122,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
-        } catch(TaskException $exception) {
+        } catch(BookException $exception) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
@@ -133,15 +135,15 @@ if(array_key_exists("taskid", $_GET)) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Failed to Retrieve Task");
+            $response->addMessage("Failed to Retrieve Book");
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
         }
     } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
         try {
-            $query = $writeDB->prepare('delete from tbl_tasks where id=:taskid');
-            $query->bindparam(':taskid', $taskid, PDO::PARAM_INT);
+            $query = $writeDB->prepare('delete from Books where bookID=:bookid');
+            $query->bindparam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
 
             $rowCount = $query->rowCount();
@@ -150,7 +152,7 @@ if(array_key_exists("taskid", $_GET)) {
                 $response = new Response();
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
-                $response->addMessage("Error: Task not found!");
+                $response->addMessage("Error: Book not found!");
                 $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit; 
@@ -159,7 +161,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response = new Response();
             $response->setHttpStatusCode(200);
             $response->setSuccess(true);
-            $response->addMessage("Task Deleted Successfully!");
+            $response->addMessage("Book Deleted Successfully!");
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit; 
@@ -168,7 +170,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Failed to Delete Task");
+            $response->addMessage("Failed to Delete Book");
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
@@ -249,9 +251,9 @@ if(array_key_exists("taskid", $_GET)) {
               exit();
             }
       
-            $taskid = $_GET['taskid'];
-            $query = $readDB->prepare('select id, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from tbl_tasks where id = :taskid');
-            $query->bindParam(':taskid', $taskid, PDO::PARAM_INT);
+            $bookid = $_GET['bookid'];
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
       
             $rowCount = $query->rowCount();
@@ -260,94 +262,85 @@ if(array_key_exists("taskid", $_GET)) {
               $response = new Response();
               $response->setHttpStatusCode(404);
               $response->setSuccess(false);
-              $response->addMessage("Task ID Not Found");
+              $response->addMessage("Book ID Not Found");
               $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit;
             }
       
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-              $task = new Task($row['id'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
             }
       
-            $updateQueryString = "update tbl_tasks set ".$queryFields." where id = :taskid";
+            $updateQueryString = "update Books set ".$queryFields." where bookID = :bookid";
             $updateQuery = $writeDB->prepare($updateQueryString);
       
             if($titleUpdated === true){
-              $task->setTitle($jsonData->title);
-              $updatedTitle = $task->getTitle();
+              $book->setTitle($jsonData->title);
+              $updatedTitle = $book->getTitle();
               $updateQuery->bindParam(':title', $updatedTitle, PDO::PARAM_STR);
             }
             if($descriptionUpdated === true){
-              $task->setDescription($jsonData->description);
-              $updatedDescription = $task->getDescription();
+              $book->setDescription($jsonData->description);
+              $updatedDescription = $book->getDescription();
               $updateQuery->bindParam(':description', $updatedDescription, PDO::PARAM_STR);
             }
             if($dateUpdated === true){
-              $task->setDate($jsonData->date);
-              $updatedDate = $task->getDate();
+              $book->setDate($jsonData->date);
+              $updatedDate = $book->getDate();
               $updateQuery->bindParam(':date', $updatedDate, PDO::PARAM_STR);
             }
             if($start_timeUpdated === true){
-              $task->setStartTime($jsonData->start_time);
-              $updatedStartTime = $task->getStartTime();
+              $book->setStartTime($jsonData->start_time);
+              $updatedStartTime = $book->getStartTime();
               $updateQuery->bindParam(':start_time', $start_time, PDO::PARAM_STR);
             }
             if($end_timeUpdated === true){
-              $task->setEndTime($jsonData->end_time);
-              $updatedEndTime = $task->getEndTime();
+              $book->setEndTime($jsonData->end_time);
+              $updatedEndTime = $book->getEndTime();
               $updateQuery->bindParam(':end_time', $updatedEndTime, PDO::PARAM_STR);
             }
             if($deadlineUpdated === true){
-              $task->setDeadline($jsonData->deadline);
-              $updatedDeadline = $task->getDeadline();
+              $book->setDeadline($jsonData->deadline);
+              $updatedDeadline = $book->getDeadline();
               $updateQuery->bindParam(':deadline', $updatedDeadline, PDO::PARAM_STR);
             }
             if($completeUpdated === true){
-              $task->setComplete($jsonData->complete);
-              $updatedComplete = $task->getComplete();
+              $book->setComplete($jsonData->complete);
+              $updatedComplete = $book->getComplete();
               $updateQuery->bindParam(':complete', $updatedComplete, PDO::PARAM_STR);
             }
       
-            $updateQuery->bindParam(':taskid', $taskid, PDO::PARAM_INT);
+            $updateQuery->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $updateQuery->execute();
       
             $rowCount = $updateQuery->rowCount();
-            $taskArray = array();
+            $bookArray = array();
       
-            // if($rowCount === 0) {
-            //   $response = new Response();
-            //   $response->setHttpStatusCode(404);
-            //   $response->setSuccess(false);
-            //   $response->addMessage("Task Not Updated");
-            //   $response->send();
-            //   exit;
-            // }
-      
-            $query = $readDB->prepare('select id, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from tbl_tasks where id = :taskid');
-            $query->bindParam(':taskid', $taskid, PDO::PARAM_INT);
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
       
             $rowCount = $query->rowCount();
-            $taskArray = array();
+            $bookArray = array();
       
             if($rowCount === 0) {
               $response = new Response();
               $response->setHttpStatusCode(404);
               $response->setSuccess(false);
-              $response->addMessage("Task ID Not Found");
+              $response->addMessage("Book ID Not Found");
               $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit;
             }
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-              $task = new Task($row['id'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-              $taskArray[] = $task->getTasksAsArray();
+              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+              $bookArray[] = $book->getBooksAsArray();
             }
       
             $returnData = array();
             $returnData['rows_returned'] = $rowCount;
-            $returnData['tasks'] = $taskArray;
+            $returnData['books'] = $bookArray;
       
             $response = new Response();
             $response->setHttpStatusCode(200);
@@ -359,7 +352,7 @@ if(array_key_exists("taskid", $_GET)) {
             exit;
           }
       
-          catch(TaskException $exception) {
+          catch(BookException $exception) {
               $response = new Response();
               $response->setHttpStatusCode(400);
               $response->setSuccess(false);
@@ -372,7 +365,7 @@ if(array_key_exists("taskid", $_GET)) {
               $response = new Response();
               $response->setHttpStatusCode(500);
               $response->setSuccess(false);
-              $response->addMessage("Failed to Update Task");
+              $response->addMessage("Failed to Update Book");
               $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
               $response->send();
               exit();
@@ -402,31 +395,31 @@ if(array_key_exists("taskid", $_GET)) {
 
     if($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
-            $query = $readDB->prepare('select id, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from tbl_tasks where complete = :complete');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where complete = :complete');
             $query->bindparam(':complete', $complete, PDO::PARAM_INT);
             $query->execute();
 
             $rowCount = $query->rowCount();
-            $taskArray = array();
+            $bookArray = array();
 
             if ($rowCount === 0) {
                 $response = new Response();
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
-                $response->addMessage("Tasks Not Found");
+                $response->addMessage("Books Not Found");
                 $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
 
             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $task = new Task($row['id'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $taskArray[] = $task->getTasksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+                $booksArray[] = $book->getBooksAsArray();
             }
 
             $returnData = array();
             $returnData['rows_returned'] = $rowCount;
-            $returnData['tasks'] = $taskArray;
+            $returnData['books'] = $booksArray;
 
             $response = new Response();
             $response->setHttpStatusCode(200);
@@ -436,7 +429,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
-        } catch (TaskException $exception) {
+        } catch (BookException $exception) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
@@ -448,7 +441,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Error: Failed to Get Tasks");
+            $response->addMessage("Error: Failed to Get Books");
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
@@ -499,7 +492,7 @@ if(array_key_exists("taskid", $_GET)) {
                 exit;
             }
 
-            $newTask = new Task(null,
+            $newBook = new Book(null,
                                 (isset($jsonData->title) ? $jsonData->title : null),
                                 (isset($jsonData->description) ? $jsonData->description : null),
                                 (isset($jsonData->date) ? $jsonData->date : null),
@@ -507,15 +500,15 @@ if(array_key_exists("taskid", $_GET)) {
                                 (isset($jsonData->end_time) ? $jsonData->end_time : null),
                                 (isset($jsonData->deadline) ? $jsonData->deadline : null),
                                 (isset($jsonData->complete) ? $jsonData->complete : null));
-            $title = $newTask->getTitle();
-            $description = $newTask->getDescription();
-            $date = $newTask->getDate();
-            $start_time = $newTask->getStartTime();
-            $end_time = $newTask->getEndTime();
-            $deadline = $newTask->getDeadline();
-            $complete = $newTask->getComplete();
+            $title = $newBook->getTitle();
+            $description = $newBook->getDescription();
+            $date = $newBook->getDate();
+            $start_time = $newBook->getStartTime();
+            $end_time = $newBook->getEndTime();
+            $deadline = $newBook->getDeadline();
+            $complete = $newBook->getComplete();
 
-            $query = $writeDB->prepare('insert into tbl_tasks (title, description, date, start_time, end_time, deadline, complete) values (:title, :description, STR_TO_DATE(:date, \'%d-%m-%Y\'), :start_time, :end_time, STR_TO_DATE(:deadline, \'%d-%m-%Y %H:%i\'), :complete)');
+            $query = $writeDB->prepare('insert into Books (title, description, date, start_time, end_time, deadline, complete) values (:title, :description, STR_TO_DATE(:date, \'%d-%m-%Y\'), :start_time, :end_time, STR_TO_DATE(:deadline, \'%d-%m-%Y %H:%i\'), :complete)');
 
             $query->bindParam(':title', $title, PDO::PARAM_STR);
             $query->bindParam(':description', $description, PDO::PARAM_STR);
@@ -533,39 +526,39 @@ if(array_key_exists("taskid", $_GET)) {
                 $response = new Response();
                 $response->setHttpStatusCode(500);
                 $response->setSuccess(false);
-                $response->addMessage("Error: Failed to Insert Task into Database");
+                $response->addMessage("Error: Failed to Insert Book into Database");
                 $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
 
-            $lastTaskID = $writeDB->lastInsertID();
+            $lastBookID = $writeDB->lastInsertID();
 
-            $query = $readDB->prepare('select id, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from tbl_tasks where id = :taskid');
-            $query->bindParam(':taskid', $lastTaskID, PDO::PARAM_INT);
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query->bindParam(':bookid', $lastBookID, PDO::PARAM_INT);
             $query->execute();
 
             $rowCount = $query->rowCount();
-            $taskArray = array();
+            $bookArray = array();
 
             if ($rowCount === 0) {
                 $response = new Response();
                 $response->setHttpStatusCode(404);
                 $response->setSuccess(false);
-                $response->addMessage("Error: Task ID Not Found");
+                $response->addMessage("Error: Book ID Not Found");
                 $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
                 $response->send();
                 exit;
             }
 
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $task = new Task($row['id'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $taskArray[] = $task->getTasksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+                $booksArray[] = $book->getBooksAsArray();
             }
 
             $returnData = array();
             $returnData['rows_returned'] = $rowCount;
-            $returnData['tasks'] = $taskArray;
+            $returnData['books'] = $booksArray;
 
             $response = new Response();
             $response->setHttpStatusCode(200);
@@ -575,7 +568,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;
-        } catch (TaskException $exception) {
+        } catch (BookException $exception) {
             $response = new Response();
             $response->setHttpStatusCode(400);
             $response->setSuccess(false);
@@ -588,7 +581,7 @@ if(array_key_exists("taskid", $_GET)) {
             $response = new Response();
             $response->setHttpStatusCode(500);
             $response->setSuccess(false);
-            $response->addMessage("Error: Failed to Insert Task into Database");
+            $response->addMessage("Error: Failed to Insert Book into Database");
             $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
             $response->send();
             exit;

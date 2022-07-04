@@ -1,8 +1,8 @@
 <?php
 
-    class TaskException extends Exception { }
+    class BookException extends Exception { }
 
-    class Task {
+    class Book {
         private $_id;
         private $_title;
         private $_description;
@@ -67,14 +67,14 @@
 
         public function setId($id) {
             if (($id !== null) && (!is_numeric($id) || $this->_id !== null)) {
-                throw new TaskException("Error: Task ID Issue");
+                throw new BookException("Error: Task ID Issue");
             }
             $this->_id = $id;
         }
 
         public function setTitle($title) {
             if (strlen($title) <= 0 || strlen($title) >= 255) {
-                throw new TaskException("Error: Title Issue");
+                throw new BookException("Error: Title Issue");
             }
             $this->_title = $title;
         }
@@ -85,50 +85,50 @@
 
         public function setDate($date) {
             if (!$this->isValidDate($date, 'd-m-Y')) {
-                throw new TaskException("Error: Task Date Issue");
+                throw new BookException("Error: Task Date Issue");
             }
             $this->_date = $date;
         }
 
         public function setStartTime($start_time) {
             if (!$this->isValidDate($start_time, 'H:i:s')) {
-                throw new TaskException("Error: Start Time Issue");
+                throw new BookException("Error: Start Time Issue");
             }
             $this->_start_time = $start_time;
         }
 
         public function setEndTime($end_time) {
             if(!$this->isValidDate($end_time, 'H:i:s')) {
-                throw new TaskException("Error: End Time Issue");
+                throw new BookException("Error: End Time Issue");
             }
             $this->_end_time = $end_time;
         }
 
         public function setDeadline($deadline) {
             if (($deadline !== null) && date_format(date_create_from_format('d-m-Y H:i', $deadline), 'd-m-Y H:i') !== $deadline) {
-                throw new TaskException("Error: Deadline Issue");
+                throw new BookException("Error: Deadline Issue");
             }
             $this->_deadline = $deadline;
         }
 
         public function setComplete($complete) {
             if (strtoupper($complete) !== 'Y' && strtoupper($complete) !== 'N') {
-                throw new TaskException("Error: Status Issue");
+                throw new BookException("Error: Status Issue");
             }
             $this->_complete = $complete;
         }
 
-        public function getTasksAsArray() {
-            $task = array();
-            $task['id'] = $this->getId();
-            $task['title'] = $this->getTitle();
-            $task['description'] = $this->getDescription();
-            $task['date'] = $this->getDate();
-            $task['start_time'] = $this->getStartTime();
-            $task['end_time'] = $this->getEndTime();
-            $task['deadline'] = $this->getDeadline();
-            $task['complete'] = $this->getComplete();
-            return $task;
+        public function getBooksAsArray() {
+            $book = array();
+            $book['id'] = $this->getId();
+            $book['title'] = $this->getTitle();
+            $book['description'] = $this->getDescription();
+            $book['date'] = $this->getDate();
+            $book['start_time'] = $this->getStartTime();
+            $book['end_time'] = $this->getEndTime();
+            $book['deadline'] = $this->getDeadline();
+            $book['complete'] = $this->getComplete();
+            return $book;
         }
     }
 
