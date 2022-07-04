@@ -75,6 +75,73 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 }
 }
 
+if($_SERVER['REQUEST_METHOD'] === 'GET') {
+  try {
+      $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books');
+      $query->execute();
+
+      $rowCount = $query->rowCount();
+      $bookArray = array();
+
+      if ($rowCount === 0) {
+          $response = new Response();
+          $response->setHttpStatusCode(404);
+          $response->setSuccess(false);
+          $response->addMessage("Books Not Found");
+          $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+          $response->send();
+          exit;
+      }
+      $realRowCount = 0;
+      while($row = $query->fetch(PDO::FETCH_ASSOC)) {
+          $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
+          if ($row['userID'] === $_SESSION['userID']) {
+            $bookArray[] = $book->getBooksAsArray();
+            $realRowCount = $realRowCount + 1;
+          }
+      }
+
+      if($realRowCount === 0) {
+        $response = new Response();
+        $response->setHttpStatusCode(404);
+        $response->setSuccess(false);
+        $response->addMessage("Error: No Books Found");
+        $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+        $response->send();
+        exit;
+      }
+
+      $returnData = array();
+      $returnData['rows_returned'] = $realRowCount;
+      $returnData['books'] = $bookArray;
+
+      $response = new Response();
+      $response->setHttpStatusCode(200);
+      $response->setSuccess(true);
+      $response->toCache(true);
+      $response->setData($returnData);
+      $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+      $response->send();
+      exit;
+  } catch(BookException $exception) {
+      $response = new Response();
+      $response->setHttpStatusCode(500);
+      $response->setSuccess(false);
+      $response->addMessage($exception->getMessage());
+      $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+      $response->send();
+      exit;
+  }
+  catch (PDOException $exception) {
+      $response = new Response();
+      $response->setHttpStatusCode(500);
+      $response->setSuccess(false);
+      $response->addMessage("Failed to Retrieve Book");
+      $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+      $response->send();
+      exit;
+  }
+}
 
 if(array_key_exists("bookid", $_GET)) {
     $bookid = $_GET['bookid'];
