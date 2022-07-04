@@ -28,13 +28,16 @@ Your company has been approached to develop and Application that allows their us
 
 <b>TODO:</b>
 - [ ]  An appropriate database backend that demonstrates you have considered the assessment scenario and all requirements you have implemented
-- [ ] Appropriate data models implemented in your application
-- [ ] Read records from a database and return valid XML or JSON output
-- [ ] Create records in a database and return valid XML or JSON output
-- [ ] Update records in a database and return valid XML or JSON output
-- [ ] Delete records from a database and return valid XML or JSON output
+- [x] Appropriate data models implemented in your application
+- [x] Read records from a database and return valid XML or JSON output
+- [x] Create records in a database and return valid XML or JSON output
+- [x] Update records in a database and return valid XML or JSON output
+- [x] Delete records from a database and return valid XML or JSON output
 - [x] Provide valid returns in both XML and JSON
 - [x] Implement  appropriate  security  so  that  a  user  is  required  to  authenticate  to carry out tasks (such as Create, Update and Delete requests)
+
+<b>Personal TODO:</b>
+- [ ] Only allow users to see books from their user ID 
 
 Assignment has now been handed out therefore the requirements unstruck and new scenario
 
