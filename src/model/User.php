@@ -1,5 +1,7 @@
 <?php
 
+class UserException extends Exception { }
+
 class User {
 
     private $_username;
@@ -26,6 +28,13 @@ class User {
 
     public function setPassword($password) {
         $this->_password = $password;
+    }
+
+    public function getUsersAsArray() {
+        $user = array();
+        $user['username'] = $this->getUsername();
+        $user['password'] = $this->getPassword();
+        return $user;
     }
 
 }

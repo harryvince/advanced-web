@@ -85,7 +85,7 @@
                 $this->addMessage("500 Internal Server Error");
                 $this->_responseData['messages'] = $this->_messages;
             } else {
-                $this->_responseData['success'] = true;
+                $this->_responseData['success'] = $this->_success;
                 http_response_code($this->_httpStatusCode);
                 $this->_responseData['statusCode'] = $this->_httpStatusCode;
                 $this->_responseData['authenticatedUser'] = $this->_authenticatedUser;
