@@ -75,7 +75,7 @@ if (!isset($_SERVER['PHP_AUTH_USER'])) {
 }
 }
 
-if($_SERVER['REQUEST_METHOD'] === 'GET') {
+if($_SERVER['REQUEST_METHOD'] === 'GET' && !(array_key_exists("bookid", $_GET) || array_key_exists("complete", $_GET))) {
   try {
       $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books');
       $query->execute();
