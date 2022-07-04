@@ -11,8 +11,9 @@
         private $_end_time;
         private $_deadline;
         private $_complete;
+        private $_userID;
 
-        public function __construct($id, $title, $description, $date, $start_time, $end_time, $deadline, $complete) {
+        public function __construct($id, $title, $description, $date, $start_time, $end_time, $deadline, $complete, $userID) {
 
             $this->setId($id);
             $this->setTitle($title);
@@ -22,6 +23,7 @@
             $this->setEndTime($end_time);
             $this->setDeadline($deadline);
             $this->setComplete($complete);
+            $this->setUserId($userID);
 
         }
 
@@ -55,6 +57,10 @@
 
         public function getComplete() {
             return $this->_complete;
+        }
+
+        public function getUserId() {
+            return $this->_userID;
         }
 
         public function isValidDate($date, $format = 'Y-m-d') {
@@ -118,6 +124,13 @@
             $this->_complete = $complete;
         }
 
+        public function setUserId($id) {
+            // if (($id !== null) && (!is_numeric($id) || $this->_id !== null)) {
+            //     throw new BookException("Error: User ID Issue");
+            // }
+            $this->_userID = $id;
+        }
+
         public function getBooksAsArray() {
             $book = array();
             $book['id'] = $this->getId();
@@ -128,6 +141,8 @@
             $book['end_time'] = $this->getEndTime();
             $book['deadline'] = $this->getDeadline();
             $book['complete'] = $this->getComplete();
+            // Don't need to add user ID as this is an invisible field that will only be used on the backend
+            // To identify which books belong to who
             return $book;
         }
     }

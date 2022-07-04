@@ -5,6 +5,8 @@ require_once('../model/Book.php');
 require_once('../model/Response.php');
 require_once('../model/User.php');
 
+session_start();
+
 # Change what the users entering to lowercase to allow endpoints
 if ( $_SERVER['REQUEST_URI'] != strtolower ( $_SERVER['REQUEST_URI'] ) )
     header ('Location: //' . $_SERVER['HTTP_HOST'] . strtolower ( $_SERVER['REQUEST_URI'] ));
@@ -89,7 +91,7 @@ if(array_key_exists("bookid", $_GET)) {
 
     if($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
-            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books where bookID = :bookid');
             $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
 
@@ -105,13 +107,27 @@ if(array_key_exists("bookid", $_GET)) {
                 $response->send();
                 exit;
             }
+            $realRowCount = 0;
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $bookArray[] = $book->getBooksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
+                if ($row['userID'] === $_SESSION['userID']) {
+                  $bookArray[] = $book->getBooksAsArray();
+                  $realRowCount = $realRowCount + 1;
+                }
+            }
+
+            if($realRowCount === 0) {
+              $response = new Response();
+              $response->setHttpStatusCode(404);
+              $response->setSuccess(false);
+              $response->addMessage("Error: No Books Found");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+              $response->send();
+              exit;
             }
 
             $returnData = array();
-            $returnData['rows_returned'] = $rowCount;
+            $returnData['rows_returned'] = $realRowCount;
             $returnData['books'] = $bookArray;
 
             $response = new Response();
@@ -147,6 +163,7 @@ if(array_key_exists("bookid", $_GET)) {
             $query->execute();
 
             $rowCount = $query->rowCount();
+            $bookArray = array();
 
             if ($rowCount === 0) {
                 $response = new Response();
@@ -252,7 +269,7 @@ if(array_key_exists("bookid", $_GET)) {
             }
       
             $bookid = $_GET['bookid'];
-            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books where bookID = :bookid');
             $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
       
@@ -269,7 +286,7 @@ if(array_key_exists("bookid", $_GET)) {
             }
       
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
+              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
             }
       
             $updateQueryString = "update Books set ".$queryFields." where bookID = :bookid";
@@ -317,7 +334,7 @@ if(array_key_exists("bookid", $_GET)) {
             $rowCount = $updateQuery->rowCount();
             $bookArray = array();
       
-            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books where bookID = :bookid');
             $query->bindParam(':bookid', $bookid, PDO::PARAM_INT);
             $query->execute();
       
@@ -333,13 +350,27 @@ if(array_key_exists("bookid", $_GET)) {
               $response->send();
               exit;
             }
+            $realRowCount = 0;
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-              $bookArray[] = $book->getBooksAsArray();
+              $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
+              if ($row['userID'] === $_SESSION['userID']) {
+                $bookArray[] = $book->getBooksAsArray();
+                $realRowCount = $realRowCount + 1;
+              }
+            }
+
+            if($realRowCount === 0) {
+              $response = new Response();
+              $response->setHttpStatusCode(404);
+              $response->setSuccess(false);
+              $response->addMessage("Error: No Book Found");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+              $response->send();
+              exit;
             }
       
             $returnData = array();
-            $returnData['rows_returned'] = $rowCount;
+            $returnData['rows_returned'] = $realRowCount;
             $returnData['books'] = $bookArray;
       
             $response = new Response();
@@ -395,7 +426,7 @@ if(array_key_exists("bookid", $_GET)) {
 
     if($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
-            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where complete = :complete');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books where complete = :complete');
             $query->bindparam(':complete', $complete, PDO::PARAM_INT);
             $query->execute();
 
@@ -412,14 +443,28 @@ if(array_key_exists("bookid", $_GET)) {
                 exit;
             }
 
+            $realRowCount = 0;
             while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $booksArray[] = $book->getBooksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
+                if ($row['userID'] === $_SESSION['userID']) {
+                  $bookArray[] = $book->getBooksAsArray();
+                  $realRowCount = $realRowCount + 1;
+                }
+            }
+
+            if($realRowCount === 0) {
+              $response = new Response();
+              $response->setHttpStatusCode(404);
+              $response->setSuccess(false);
+              $response->addMessage("Error: No Books Found");
+              $response->setAuthenticatedUser($_SERVER['PHP_AUTH_USER']);
+              $response->send();
+              exit;
             }
 
             $returnData = array();
-            $returnData['rows_returned'] = $rowCount;
-            $returnData['books'] = $booksArray;
+            $returnData['rows_returned'] = $realRowCount;
+            $returnData['books'] = $bookArray;
 
             $response = new Response();
             $response->setHttpStatusCode(200);
@@ -499,7 +544,8 @@ if(array_key_exists("bookid", $_GET)) {
                                 (isset($jsonData->start_time) ? $jsonData->start_time : null),
                                 (isset($jsonData->end_time) ? $jsonData->end_time : null),
                                 (isset($jsonData->deadline) ? $jsonData->deadline : null),
-                                (isset($jsonData->complete) ? $jsonData->complete : null));
+                                (isset($jsonData->complete) ? $jsonData->complete : null),
+                                ($_SESSION['userID']));
             $title = $newBook->getTitle();
             $description = $newBook->getDescription();
             $date = $newBook->getDate();
@@ -507,8 +553,9 @@ if(array_key_exists("bookid", $_GET)) {
             $end_time = $newBook->getEndTime();
             $deadline = $newBook->getDeadline();
             $complete = $newBook->getComplete();
+            $userID = $newBook->getUserId();
 
-            $query = $writeDB->prepare('insert into Books (title, description, date, start_time, end_time, deadline, complete) values (:title, :description, STR_TO_DATE(:date, \'%d-%m-%Y\'), :start_time, :end_time, STR_TO_DATE(:deadline, \'%d-%m-%Y %H:%i\'), :complete)');
+            $query = $writeDB->prepare('insert into Books (title, description, date, start_time, end_time, deadline, complete, userID) values (:title, :description, STR_TO_DATE(:date, \'%d-%m-%Y\'), :start_time, :end_time, STR_TO_DATE(:deadline, \'%d-%m-%Y %H:%i\'), :complete, :userid)');
 
             $query->bindParam(':title', $title, PDO::PARAM_STR);
             $query->bindParam(':description', $description, PDO::PARAM_STR);
@@ -517,6 +564,7 @@ if(array_key_exists("bookid", $_GET)) {
             $query->bindParam(':end_time', $end_time, PDO::PARAM_STR);
             $query->bindParam(':deadline', $deadline, PDO::PARAM_STR);
             $query->bindParam(':complete', $complete, PDO::PARAM_STR);
+            $query->bindParam(':userid', $userID, PDO::PARAM_STR);
 
             $query->execute();
 
@@ -534,7 +582,7 @@ if(array_key_exists("bookid", $_GET)) {
 
             $lastBookID = $writeDB->lastInsertID();
 
-            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete from Books where bookID = :bookid');
+            $query = $readDB->prepare('select bookID, title, description, DATE_FORMAT(date, "%d-%m-%Y") as "date", start_time, end_time, DATE_FORMAT(deadline, "%d-%m-%Y %H:%i") as "deadline", complete, userID from Books where bookID = :bookid');
             $query->bindParam(':bookid', $lastBookID, PDO::PARAM_INT);
             $query->execute();
 
@@ -552,13 +600,14 @@ if(array_key_exists("bookid", $_GET)) {
             }
 
             while($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete']);
-                $booksArray[] = $book->getBooksAsArray();
+                $book = new Book($row['bookID'], $row['title'], $row['description'], $row['date'], $row['start_time'], $row['end_time'], $row['deadline'], $row['complete'], $row['userID']);
+                $bookArray[] = $book->getBooksAsArray();
             }
+
 
             $returnData = array();
             $returnData['rows_returned'] = $rowCount;
-            $returnData['books'] = $booksArray;
+            $returnData['books'] = $bookArray;
 
             $response = new Response();
             $response->setHttpStatusCode(200);
