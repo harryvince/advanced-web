@@ -5,6 +5,8 @@ SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
 SET NAMES utf8mb4;
 
+CREATE DATABASE api;
+
 DROP TABLE IF EXISTS `Books`;
 CREATE TABLE `Books` (
   `bookID` bigint NOT NULL AUTO_INCREMENT,
