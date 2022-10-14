@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $returnData = array();
         $returnData['rows_returned'] = $rowCount;
-        $returnData['books'] = $userArray;
+        $returnData['user'] = $userArray;
 
         $response = new Response();
         $response->setHttpStatusCode(200);
