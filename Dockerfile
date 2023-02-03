@@ -3,6 +3,7 @@ FROM php:7.4-apache
 
 COPY deployment-files/000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY deployment-files/start-apache.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/start-apache.sh
 RUN a2enmod rewrite
 
 # Install MySql Driver for PDO
